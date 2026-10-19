@@ -256,6 +256,8 @@ sequenceDiagram
 
 ---
 
+
+
 ## 8. Sequence — Authentication & Session Guard
 
 ```mermaid
