@@ -202,29 +202,49 @@ sequenceDiagram
 
 ---
 
+
 ## 7. Sequence — Checkout & Invoice
 
 ```mermaid
 sequenceDiagram
-  autonumber
-  actor U as Customer
-  participant CO as Checkout Page
-  participant AX as Axios Client
-  participant API as RMS API
-  participant LS as localStorage
+    autonumber
+    actor U as Customer
+    participant UI as React Frontend
+    participant API as RMS Backend API
+    participant DB as Backend Database
 
-  U->>CO: Open /create-order
-  CO->>LS: read cart, deliveryFee, guest flags
-  CO->>AX: GET payment-methods
-  AX->>API: /payment-methods
-  API-->>CO: methods[]
+    U->>UI: Confirm checkout
+    UI->>API: GET payment methods
+    API-->>UI: Available payment methods
 
-  alt Registered user
-    CO->>AX: GET addresses/history (Bearer)
-    API-->>CO: address book
-  else Guest
-    CO->>LS: read guestAddress
-  end
+    alt Registered customer
+        UI->>API: GET saved addresses
+        API-->>UI: Saved addresses
+    else Guest customer
+        UI->>UI: Read guest address from form or local storage
+    end
+
+    U->>UI: Submit order details
+    UI->>API: POST checkout request
+    API->>API: Validate request and recalculate totals
+    API->>DB: Create order and related records
+    DB-->>API: Persisted order data
+    API-->>UI: Order response and invoice data
+
+    alt Order created successfully
+        UI->>UI: Update cart state
+        alt Guest customer
+            UI->>UI: Save guest order snapshot locally
+        else Registered customer
+            UI->>UI: Prepare order history navigation
+        end
+        UI-->>U: Show order confirmation
+    else Request rejected or failed
+        API-->>UI: Error response
+        UI-->>U: Show error and allow retry
+    end
+```
+
 
   U->>CO: Select address, payment, delivery/pickup, promo
   CO->>AX: POST checkout-mobile
