@@ -63,7 +63,7 @@ This view separates the browser runtime, static asset delivery, and backend plat
 ```mermaid
 flowchart TB
     subgraph Browser["Customer Browser"]
-        SPA["React SPA<br/>Pages, components, and client-side state"]
+        SPA["React SPA<br/>Pages, components, Redux Toolkit store"]
         LS[("Browser localStorage<br/>Cart, session-related data, guest data, consent")]
         SPA <--> LS
     end
@@ -123,6 +123,7 @@ flowchart TB
     subgraph Infrastructure["Infrastructure"]
         AXIOS["utils/axios.js"]
         API_INDEX["api/index.js"]
+        STORE["store/*<br/>Redux Toolkit slices"]
         STORAGE[("Browser localStorage")]
     end
 
@@ -133,7 +134,8 @@ flowchart TB
     PAGES --> AUTH
     PAGES --> CATEGORIES
 
-    CART --> STORAGE
+    CART --> STORE
+    STORE -->|"persist cart"| STORAGE
     CART --> AXIOS
     CHECKOUT --> AXIOS
     PRODUCTS --> AXIOS

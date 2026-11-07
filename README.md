@@ -40,6 +40,7 @@ This frontend integrates with a backend REST API that owns catalog, pricing, cus
 |-------|------------|
 | Runtime | React 18 |
 | Routing | React Router v6 |
+| State | Redux Toolkit (`@reduxjs/toolkit`, React-Redux) |
 | HTTP | Axios (centralized client + interceptors) |
 | Forms / Validation | React Hook Form, Yup |
 | Styling | Tailwind CSS, styled-components, component CSS |
@@ -128,7 +129,7 @@ Serves the production build via Nginx on port `3000` (mapped to container port `
 1. Customer browses categories / subcategories or search.
 2. Opens product details (sizes, extras, allergens).
 3. Client computes **dynamic unit price** = base (or size) + selected extras.
-4. Line is stored in `localStorage` cart with a composite `uniqueKey` (product + size + extras).
+4. Line is added to the Redux Toolkit cart slice (persisted to `localStorage`) with a composite `uniqueKey` (product + size + extras).
 
 ### 6.2 Checkout → Order → Invoice
 
@@ -150,6 +151,7 @@ Serves the production build via Nginx on port `3000` (mapped to container port `
 ```text
 src/
 ├── api/                 # Endpoint registry & domain hooks/services
+├── store/               # Redux Toolkit store & slices (cart, user)
 ├── components/          # Presentational & feature UI
 │   ├── cart/
 │   ├── checkout/
@@ -201,6 +203,8 @@ Full endpoint mapping: `src/api/index.js`.
 ## 11. Team & Market Context
 
 Built as part of a larger engineering organization delivering a full operational restaurant platform for European operators — covering customer channels, administrative control, and day-to-day multi-location operations. This repository is the **customer ordering web client** within that platform.
+
+Delivered by a 7-person team following an agile workflow: sprint tracking in Jira, version control and code review through Git/GitLab merge requests.
 
 ---
 

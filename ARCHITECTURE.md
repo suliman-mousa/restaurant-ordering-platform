@@ -73,7 +73,7 @@ The system supports:
 | UI library | React 18 | Component model, ecosystem maturity |
 | Routing | Declarative route table (`router.js`) + React Router | Clear ownership of screens |
 | Data access | Thin API layer + custom hooks | Separation of UI from transport |
-| Cart state | Client-side `localStorage` | Offline-tolerant browse/cart; sync at verify/checkout |
+| Client state | Redux Toolkit store (cart and user slices); cart slice persisted to `localStorage` | Predictable shared state across header, cart and checkout; survives reloads; synced at verify/checkout |
 | Auth | Bearer token in `localStorage` | Simple session for B2C web; interceptor enforces 401 |
 | Styling | Tailwind + CSS modules / styled-components | Rapid UI iteration with selective component styling |
 | Deployment | Multi-stage Docker → Nginx | Immutable static artifacts, portable EU hosting |
@@ -95,13 +95,14 @@ The system supports:
 │  · useGetProducts · useGetproductDetailsData                    │
 │  · useGetcheckoutData · useGetAddressData · useGetOrderHistory  │
 │  · cart mutations · submitOrder · auth submit*                  │
+│  Redux Toolkit store (store/*): cart slice · user slice         │
 └────────────────────────────┬────────────────────────────────────┘
                              │
 ┌────────────────────────────▼────────────────────────────────────┐
 │ Infrastructure Layer                                            │
 │  utils/axios.js   HTTP client, auth headers, error interceptors │
 │  api/index.js     Endpoint registry (BASE_URL + resource paths) │
-│  localStorage     Cart, tokens, guest flags, consent, fees      │
+│  localStorage     Persisted cart, tokens, guest flags, consent  │
 └────────────────────────────┬────────────────────────────────────┘
                              │ HTTPS
 ┌────────────────────────────▼────────────────────────────────────┐
@@ -194,7 +195,7 @@ This allows the same base product to exist as multiple cart lines when configura
 ### 7.1 Authenticated order
 
 1. Login → store `token`, `id`, `role`; clear guest flag  
-2. Browse / configure → mutate cart in `localStorage`  
+2. Browse / configure → dispatch cart actions to the Redux cart slice (persisted to `localStorage`)  
 3. Checkout loads payment methods + address history (authenticated GET)  
 4. Optional `verify-cart`  
 5. `POST checkout-mobile` with `customer_id`, `address_id`, `payment_method_id`, `order_items`  
@@ -222,7 +223,7 @@ Axios response interceptor:
 | Data | Client | Backend |
 |------|--------|---------|
 | Product catalog | Cache in memory (hook state) | **Source of truth** |
-| Cart lines | **Primary (localStorage)** | Verified at checkout |
+| Cart lines | **Primary (Redux store, persisted to localStorage)** | Verified at checkout |
 | Auth token / customer id | Stored locally | Issues & validates |
 | Addresses | Form UX + guest cache | **Persisted** |
 | Delivery fees | Display cache | **Source of truth** |
@@ -318,7 +319,7 @@ Axios response interceptor:
 | New endpoint | Register in `api/index.js`; add hook/service; keep pages thin |
 | New screen | Add page + route entry in `router.js` |
 | Pricing rules | Prefer server authority; client shows preview only |
-| State complexity | Introduce dedicated state store only if cart/session outgrow `localStorage` |
+| State complexity | Add new slices to the Redux Toolkit store for shared client state; keep server data in hooks (or RTK Query) instead of duplicating it in slices |
 | Secrets | Move base URL / keys to build-time env (`REACT_APP_*`) |
 
 ---
